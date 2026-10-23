@@ -1,0 +1,37 @@
+package Backend.BrechoAPI.dto.response;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+public record PixResponseDTO(String txid, String copyPaste) {}

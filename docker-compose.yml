@@ -1,0 +1,67 @@
+name: brecho-v2
+
+
+
+
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: brecho-v2-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-brecho}
+      POSTGRES_USER: ${DB_USER:-brecho}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-brecho}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-brecho} -d ${DB_NAME:-brecho}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  
+  minio:
+    image: minio/minio:latest
+    container_name: brecho-v2-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD:-minioadmin}
+    ports:
+      - "9000:9000"   
+      - "9001:9001"   
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "mc ready local || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  
+  
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      sh -c "
+      mc alias set local http://minio:9000 ${MINIO_USER:-minioadmin} ${MINIO_PASSWORD:-minioadmin} &&
+      mc mb -p local/${R2_BUCKET_NAME:-brecho-fotos} &&
+      mc anonymous set download local/${R2_BUCKET_NAME:-brecho-fotos} &&
+      echo 'bucket pronto'
+      "
+
+volumes:
+  pg_data:
+  minio_data:
