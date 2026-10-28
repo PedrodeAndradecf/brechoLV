@@ -46,6 +46,21 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 FROM maven:3.9-eclipse-temurin-25 AS build
 
 WORKDIR /build
@@ -67,6 +82,12 @@ FROM eclipse-temurin:25-jre-alpine
 RUN addgroup -S brecho && adduser -S brecho -G brecho
 
 WORKDIR /app
+
+
+
+
+
+
 
 
 
